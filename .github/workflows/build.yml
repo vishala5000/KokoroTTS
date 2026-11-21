@@ -1,0 +1,32 @@
+name: Build & Sign APK
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build release APK
+        env:
+          KS_PASS:     kokorotts2026
+          KS_ALIAS:    kokoro
+          KS_KEY_PASS: kokorotts2026
+        run: ./gradlew assembleRelease --no-daemon
+      - name: Upload signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: KokoroTTS-signed-apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
